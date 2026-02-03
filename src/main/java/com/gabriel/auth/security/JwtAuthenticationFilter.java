@@ -1,13 +1,13 @@
 package com.gabriel.auth.security;
 
-import com.gabriel.auth.domain.User;
-import com.gabriel.auth.repository.UserRepository;
+import com.gabriel.auth.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,11 +18,14 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final CustomUserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService,
+            CustomUserDetailsService userDetailsService
+    ) {
         this.jwtService = jwtService;
-        this.userRepository = userRepository;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -48,15 +51,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String email = jwtService.extractEmail(token);
 
-        User user = userRepository.findByEmail(email).orElse(null);
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-        if (user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(email);
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
-                            user,
+                            userDetails,
                             null,
-                            null
+                            userDetails.getAuthorities()
                     );
 
             authToken.setDetails(
@@ -69,4 +73,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
