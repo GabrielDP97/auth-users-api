@@ -16,6 +16,14 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public User authenticate(String email, String password) {
+
+        return userRepository.findByEmail(email)
+                .filter(user -> user.getPassword().equals(password))
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+    }
+
+
     @Transactional
     public User registerUser(String username, String email, String password) {
 

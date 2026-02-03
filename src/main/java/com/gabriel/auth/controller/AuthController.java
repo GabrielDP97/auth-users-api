@@ -1,8 +1,11 @@
 package com.gabriel.auth.controller;
 
 import com.gabriel.auth.domain.User;
+import com.gabriel.auth.dto.LoginRequest;
+import com.gabriel.auth.dto.LoginResponse;
 import com.gabriel.auth.dto.RegisterRequest;
 import com.gabriel.auth.dto.UserResponse;
+import com.gabriel.auth.security.JwtService;
 import com.gabriel.auth.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -15,9 +18,27 @@ public class AuthController {
 
     private final UserService userService;
 
-    public AuthController(UserService userService) {
+    private final JwtService jwtService;
+
+    public AuthController(UserService userService, JwtService jwtService) {
         this.userService = userService;
+        this.jwtService = jwtService;
     }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+
+        User user = userService.authenticate(
+                request.getEmail(),
+                request.getPassword()
+        );
+
+        String token = jwtService.generateToken(user);
+
+        return ResponseEntity.ok(new LoginResponse(token));
+    }
+
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
