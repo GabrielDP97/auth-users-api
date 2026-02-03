@@ -4,6 +4,7 @@ import com.gabriel.auth.domain.Role;
 import com.gabriel.auth.domain.User;
 import com.gabriel.auth.exception.EmailAlreadyExistsException;
 import com.gabriel.auth.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,17 +12,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
+
 
     public User authenticate(String email, String password) {
 
         return userRepository.findByEmail(email)
-                .filter(user -> user.getPassword().equals(password))
+                .filter(user -> passwordEncoder.matches(password, user.getPassword()))
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
     }
+
 
 
     @Transactional
@@ -34,11 +39,12 @@ public class UserService {
         User user = new User(
                 username,
                 email,
-                password, // ⚠️ luego lo encriptaremos
+                passwordEncoder.encode(password), // 🔐 AQUÍ
                 Role.USER
         );
 
         return userRepository.save(user);
     }
+
 }
 
