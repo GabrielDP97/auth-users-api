@@ -44,7 +44,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
 
-        User user = userService.registerUser(
+        User user = userService.register(
                 request.getUsername(),
                 request.getEmail(),
                 request.getPassword()

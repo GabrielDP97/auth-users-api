@@ -14,37 +14,42 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-
-    public User authenticate(String email, String password) {
-
-        return userRepository.findByEmail(email)
-                .filter(user -> passwordEncoder.matches(password, user.getPassword()))
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
-    }
-
-
-
+    /**
+     * Registro de usuario
+     */
     @Transactional
-    public User registerUser(String username, String email, String password) {
+    public User register(String username, String email, String rawPassword) {
 
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new EmailAlreadyExistsException(email);
         }
 
         User user = new User(
                 username,
                 email,
-                passwordEncoder.encode(password), // 🔐 AQUÍ
+                passwordEncoder.encode(rawPassword),
                 Role.USER
         );
 
         return userRepository.save(user);
     }
 
+    /**
+     * Autenticación de usuario
+     */
+    public User authenticate(String email, String rawPassword) {
+
+        return userRepository.findByEmail(email)
+                .filter(user ->
+                        passwordEncoder.matches(rawPassword, user.getPassword())
+                )
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+    }
 }
 
