@@ -1,9 +1,7 @@
 # Auth Users API 🔐  
 **Backend Authentication & Authorization API (Spring Boot)**
 
-Proyecto backend desarrollado en **Java + Spring Boot** enfocado a demostrar conocimientos reales de **autenticación, autorización, seguridad y testing** en un entorno profesional.
-
-Este proyecto forma parte de mi **portfolio como desarrollador backend** y está diseñado siguiendo buenas prácticas habituales en proyectos reales.
+Proyecto backend desarrollado en **Java + Spring Boot** enfocado a **autenticación, autorización, seguridad y testing**.
 
 ---
 
